@@ -1,0 +1,95 @@
+import { useState, type FormEvent } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../context/AuthContext'
+
+export function LoginPage() {
+  const { t } = useTranslation()
+  const { login, isAuthenticated } = useAuth()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/daily'
+
+  const [email, setEmail] = useState('admin@fleet-bi.com')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+    try {
+      await login(email, password)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="relative flex h-full min-h-0 items-center justify-center overflow-auto p-6">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-primary" />
+      <div className="pointer-events-none absolute -start-32 -top-32 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -end-32 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
+
+      <div className="card relative w-full max-w-md p-8 shadow-elevated">
+        <div className="mb-8 flex items-center gap-4">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-400 text-lg font-bold text-white shadow-lg shadow-blue-500/30">
+            BI
+          </span>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('app.title')}</h1>
+            <p className="mt-1 text-sm text-slate-500">{t('auth.signInSubtitle')}</p>
+          </div>
+        </div>
+
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+          {error && (
+            <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+              {error}
+            </div>
+          )}
+
+          <label className="flex flex-col gap-2">
+            <span className="field-label">{t('auth.email')}</span>
+            <input
+              type="email"
+              className="field"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              required
+            />
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="field-label">{t('auth.password')}</span>
+            <input
+              type="password"
+              className="field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          <button type="submit" className="btn-primary mt-1 w-full py-3 text-[15px] font-bold" disabled={submitting}>
+            {submitting ? t('auth.signingIn') : t('auth.signIn')}
+          </button>
+        </form>
+
+        <p className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">{t('auth.demoHint')}</p>
+      </div>
+    </div>
+  )
+}

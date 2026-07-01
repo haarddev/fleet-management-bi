@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-hebrew: 'Heebo', 'Inter', system-ui, sans-serif;
+  --color-primary: #0f62fe;
+  --color-primary-hover: #0353e9;
+  --color-primary-soft: #e8f1ff;
+  --color-surface: #ffffff;
+  --color-canvas: #f1f5f9;
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 0.06), 0 4px 12px rgb(15 23 42 / 0.04);
+  --shadow-card-hover: 0 4px 6px rgb(15 23 42 / 0.05), 0 12px 28px rgb(15 98 254 / 0.08);
+  --shadow-elevated: 0 8px 30px rgb(15 23 42 / 0.1);
+}
+
+@layer base {
+  html {
+    @apply h-full antialiased scroll-smooth;
+  }
+
+  body {
+    @apply m-0 h-full overflow-hidden bg-canvas text-slate-900 text-sm;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgb(15 98 254 / 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgb(59 130 246 / 0.05), transparent);
+    background-attachment: fixed;
+  }
+
+  #root {
+    @apply h-full;
+  }
+
+  [dir='rtl'] body {
+    font-family: var(--font-hebrew);
+  }
+
+  [dir='ltr'] body {
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    @apply bg-blue-100 text-blue-900;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.5) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300/80;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive {
+    @apply rounded-2xl border border-slate-200/80 bg-white transition duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive:hover {
+    box-shadow: var(--shadow-card-hover);
+    @apply -translate-y-px border-slate-200;
+  }
+
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition duration-200;
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition duration-200;
+    @apply border border-primary bg-primary text-white shadow-sm;
+  }
+
+  .btn-primary:hover {
+    @apply border-primary-hover bg-primary-hover shadow-md;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition duration-200;
+    @apply border border-slate-200 bg-white text-slate-700 shadow-sm;
+  }
+
+  .btn-secondary:hover {
+    @apply border-slate-300 bg-slate-50 shadow;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition duration-200;
+    @apply border border-transparent text-slate-600;
+  }
+
+  .btn-ghost:hover {
+    @apply border-slate-200 bg-white text-slate-900 shadow-sm;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition duration-200;
+    @apply border border-transparent text-slate-600;
+  }
+
+  .btn-danger:hover {
+    @apply border-red-200 bg-red-50 text-red-600;
+  }
+
+  .field {
+    @apply cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition;
+  }
+
+  input.field[type='search'],
+  input.field[type='text'],
+  input.field[type='email'],
+  input.field[type='password'] {
+    @apply cursor-text;
+  }
+
+  .field:focus {
+    @apply border-primary outline-none ring-4 ring-blue-500/15;
+  }
+
+  .field-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-500;
+  }
+
+  .page-section-title {
+    @apply text-base font-semibold tracking-tight text-slate-900;
+  }
+
+  .loading-spinner {
+    @apply h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-primary;
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+}

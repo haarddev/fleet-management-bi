@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique @db.VarChar(50)
+  nameEn    String    @map("name_en") @db.VarChar(100)
+  nameHe    String    @map("name_he") @db.VarChar(100)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  drivers   Driver[]
+  trips     Trip[]
+  vehicles  Vehicle[]
+
+  @@map("regions")
+}
+
+model Customer {
+  id                     Int                      @id @default(autoincrement())
+  code                   String                   @unique @db.VarChar(20)
+  name                   String                   @db.VarChar(200)
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  customerRevenueSummary CustomerRevenueSummary[]
+  trips                  Trip[]
+
+  @@map("customers")
+}
+
+model Vehicle {
+  id                   Int                    @id @default(autoincrement())
+  vehicleNumber        String                 @unique @map("vehicle_number") @db.VarChar(20)
+  vehicleType          String                 @map("vehicle_type") @db.VarChar(80)
+  regionId             Int?                   @map("region_id")
+  status               String                 @default("active") @db.VarChar(30)
+  contractor           String?                @db.VarChar(120)
+  startDate            DateTime?              @map("start_date") @db.Date
+  endDate              DateTime?              @map("end_date") @db.Date
+  actualEndDate        DateTime?              @map("actual_end_date") @db.Date
+  downtimeDays         Int                    @default(0) @map("downtime_days")
+  incomeThreshold      Decimal                @default(0) @map("income_threshold") @db.Decimal(12, 2)
+  notes                String?
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  maintenanceAgreements MaintenanceAgreement[]
+  trips                Trip[]
+  vehicleDailyRevenue  VehicleDailyRevenue[]
+  vehicleExpenses      VehicleExpense[]
+  vehicleIdleStats     VehicleIdleStat[]
+  vehicleRelocations   VehicleRelocation[]
+  region               Region?                @relation(fields: [regionId], references: [id])
+
+  @@map("vehicles")
+}
+
+model Driver {
+  id                 Int                  @id @default(autoincrement())
+  license            String               @unique @db.VarChar(50)
+  name               String               @db.VarChar(200)
+  regionId           Int?                 @map("region_id")
+  driverType         String               @default("employee") @map("driver_type") @db.VarChar(20)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  driverDailyRevenue DriverDailyRevenue[]
+  driverIdleStats    DriverIdleStat[]
+  region             Region?              @relation(fields: [regionId], references: [id])
+  trips              Trip[]
+
+  @@map("drivers")
+}
+
+model VehicleDailyRevenue {
+  id          Int       @id @default(autoincrement())
+  vehicleId   Int       @map("vehicle_id")
+  revenueDate DateTime  @map("revenue_date") @db.Date
+  revenue     Decimal?  @db.Decimal(12, 2)
+  vehicle     Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, revenueDate])
+  @@map("vehicle_daily_revenue")
+}
+
+model DriverDailyRevenue {
+  id          Int      @id @default(autoincrement())
+  driverId    Int      @map("driver_id")
+  revenueDate DateTime @map("revenue_date") @db.Date
+  revenue     Decimal? @db.Decimal(12, 2)
+  driver      Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([driverId, revenueDate])
+  @@map("driver_daily_revenue")
+}
+
+model CustomerRevenueSummary {
+  id                      Int      @id @default(autoincrement())
+  customerId              Int      @map("customer_id")
+  periodStart             DateTime @map("period_start") @db.Date
+  periodEnd               DateTime @map("period_end") @db.Date
+  trips                   Int      @default(0)
+  vehicles                Int      @default(0)
+  totalRevenue            Decimal  @default(0) @map("total_revenue") @db.Decimal(14, 2)
+  sharePercent            Decimal  @default(0) @map("share_percent") @db.Decimal(6, 2)
+  contractorIncome        Decimal  @default(0) @map("contractor_income") @db.Decimal(14, 2)
+  contractorSharePercent  Decimal  @default(0) @map("contractor_share_percent") @db.Decimal(6, 2)
+  contractorProfitPercent Decimal  @default(0) @map("contractor_profit_percent") @db.Decimal(6, 2)
+  revenueYtd              Decimal  @default(0) @map("revenue_ytd") @db.Decimal(14, 2)
+  vehiclesAtLoss          Int      @default(0) @map("vehicles_at_loss")
+  customer                Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, periodStart, periodEnd])
+  @@map("customer_revenue_summary")
+}
+
+model WeeklyRevenueDay {
+  id              Int      @id @default(autoincrement())
+  revenueDate     DateTime @unique @map("revenue_date") @db.Date
+  revenue         Decimal? @db.Decimal(14, 2)
+  vehicles        Int      @default(0)
+  organicVehicles Int      @default(0) @map("organic_vehicles")
+  changePercent   Decimal? @map("change_percent") @db.Decimal(6, 2)
+  holidayLabel    String?  @map("holiday_label") @db.VarChar(120)
+  weekNum         Int      @map("week_num")
+  year            Int
+
+  @@map("weekly_revenue_days")
+}
+
+model MaintenanceAgreement {
+  id              Int      @id @default(autoincrement())
+  vehicleId       Int      @map("vehicle_id")
+  supplier        String   @db.VarChar(120)
+  agreementNumber String   @unique @map("agreement_number") @db.VarChar(60)
+  startDate       DateTime @map("start_date") @db.Date
+  endDate         DateTime @map("end_date") @db.Date
+  monthlyCost     Decimal  @default(0) @map("monthly_cost") @db.Decimal(12, 2)
+  annualCost      Decimal  @default(0) @map("annual_cost") @db.Decimal(12, 2)
+  serviceTypes    String?  @map("service_types")
+  status          String   @default("Active") @db.VarChar(30)
+  vehicle         Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("maintenance_agreements")
+}
+
+model VehicleExpense {
+  id          Int      @id @default(autoincrement())
+  vehicleId   Int      @map("vehicle_id")
+  expenseDate DateTime @map("expense_date") @db.Date
+  category    String   @db.VarChar(60)
+  description String?
+  amount      Decimal  @db.Decimal(12, 2)
+  provider    String?  @db.VarChar(120)
+  invoiceRef  String?  @map("invoice_ref") @db.VarChar(80)
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_expenses")
+}
+
+model VehicleRelocation {
+  id           Int      @id @default(autoincrement())
+  vehicleId    Int      @map("vehicle_id")
+  changeDate   DateTime @map("change_date") @db.Date
+  fromCustomer String?  @map("from_customer") @db.VarChar(200)
+  toCustomer   String?  @map("to_customer") @db.VarChar(200)
+  fromDriver   String?  @map("from_driver") @db.VarChar(200)
+  toDriver     String?  @map("to_driver") @db.VarChar(200)
+  fromArea     String?  @map("from_area") @db.VarChar(80)
+  toArea       String?  @map("to_area") @db.VarChar(80)
+  reason       String?  @db.VarChar(120)
+  operatorName String?  @map("operator_name") @db.VarChar(120)
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_relocations")
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  loggedAt   DateTime @default(now()) @map("logged_at") @db.Timestamptz(6)
+  userName   String   @map("user_name") @db.VarChar(120)
+  actionType String   @map("action_type") @db.VarChar(40)
+  module     String   @db.VarChar(80)
+  details    String?
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+
+  @@map("activity_log")
+}
+
+model Trip {
+  id                 Int       @id @default(autoincrement())
+  tripId             String    @unique @map("trip_id") @db.VarChar(30)
+  tripDate           DateTime  @map("trip_date") @db.Date
+  startTime          DateTime  @map("start_time") @db.Time(6)
+  endTime            DateTime  @map("end_time") @db.Time(6)
+  description        String?
+  customerId         Int?      @map("customer_id")
+  regionId           Int?      @map("region_id")
+  vehicleId          Int?      @map("vehicle_id")
+  driverId           Int?      @map("driver_id")
+  vehicleType        String?   @map("vehicle_type") @db.VarChar(80)
+  price              Decimal   @default(0) @db.Decimal(12, 2)
+  estimatedPrice     Decimal   @default(0) @map("estimated_price") @db.Decimal(12, 2)
+  driverType         String?   @map("driver_type") @db.VarChar(20)
+  manufacturerStatus String?   @map("manufacturer_status") @db.VarChar(40)
+  confirmed          Boolean   @default(false)
+  customer           Customer? @relation(fields: [customerId], references: [id])
+  driver             Driver?   @relation(fields: [driverId], references: [id])
+  region             Region?   @relation(fields: [regionId], references: [id])
+  vehicle            Vehicle?  @relation(fields: [vehicleId], references: [id])
+
+  @@map("trips")
+}
+
+model VehicleIdleStat {
+  id                   Int      @id @default(autoincrement())
+  vehicleId            Int      @map("vehicle_id")
+  periodStart          DateTime @map("period_start") @db.Date
+  periodEnd            DateTime @map("period_end") @db.Date
+  totalKm              Decimal  @default(0) @map("total_km") @db.Decimal(10, 2)
+  productiveKm         Decimal  @default(0) @map("productive_km") @db.Decimal(10, 2)
+  idleKm               Decimal  @default(0) @map("idle_km") @db.Decimal(10, 2)
+  productivityPercent  Decimal  @default(0) @map("productivity_percent") @db.Decimal(6, 2)
+  vehicle              Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, periodStart, periodEnd])
+  @@map("vehicle_idle_stats")
+}
+
+model DriverIdleStat {
+  id                   Int      @id @default(autoincrement())
+  driverId             Int      @map("driver_id")
+  periodStart          DateTime @map("period_start") @db.Date
+  periodEnd            DateTime @map("period_end") @db.Date
+  totalKm              Decimal  @default(0) @map("total_km") @db.Decimal(10, 2)
+  productiveKm         Decimal  @default(0) @map("productive_km") @db.Decimal(10, 2)
+  idleKm               Decimal  @default(0) @map("idle_km") @db.Decimal(10, 2)
+  productivityPercent  Decimal  @default(0) @map("productivity_percent") @db.Decimal(6, 2)
+  operatingDays        Int      @default(0) @map("operating_days")
+  vehicleCount         Int      @default(0) @map("vehicle_count")
+  driver               Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([driverId, periodStart, periodEnd])
+  @@map("driver_idle_stats")
+}
+
+model SchemaMigration {
+  id        Int      @id @default(autoincrement())
+  filename  String   @unique @db.VarChar(255)
+  appliedAt DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
+
+  @@map("schema_migrations")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(200)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  name         String   @db.VarChar(120)
+  role         String   @default("admin") @db.VarChar(40)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
