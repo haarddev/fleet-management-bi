@@ -112,7 +112,7 @@ export function LoginPage() {
             />
           </label>
 
-          <button type="submit" className="btn-primary mt-1 w-full py-3 text-[15px] font-bold" disabled={submitting}>
+          <button type="submit" className="btn-primary mt-1 w-full py-3 text-[15px] cursor-pointer font-bold" disabled={submitting}>
             {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>

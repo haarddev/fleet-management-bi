@@ -1,13 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { DataTable, type Column } from '../../components/common/DataTable'
 import { DrillDownPanel } from '../../components/common/DrillDownPanel'
 import { DrillField, PageWithPanel } from '../../components/common/PageWithPanel'
 import { KpiCard, KpiGrid } from '../../components/common/KpiGrid'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { buildExportColumns } from '../../lib/export'
+import {
+  applyCustomerRevenueFilters,
+  customerRevenueFilterFields,
+  customerRevenueFiltersActive,
+  defaultCustomerRevenueFilters,
+} from '../../lib/pageFilters/revenue'
 import { formatCurrency, formatKpiNumber, formatPercent } from '../../utils/format'
 
 type CustomerRow = {
@@ -41,7 +49,12 @@ export function CustomerRevenuePage() {
   const { t } = useTranslation()
   const [rows, setRows] = useState<CustomerRow[]>([])
   const [selected, setSelected] = useState<CustomerDetail | null>(null)
-  const filteredRows = useFilteredRows(rows as (CustomerRow & Record<string, unknown>)[]) as CustomerRow[]
+  const globallyFiltered = useFilteredRows(rows as (CustomerRow & Record<string, unknown>)[]) as CustomerRow[]
+  const advanced = useAdvancedFilterPanel(defaultCustomerRevenueFilters, customerRevenueFiltersActive)
+  const filteredRows = useMemo(
+    () => applyCustomerRevenueFilters(globallyFiltered, advanced.filters),
+    [advanced.filters, globallyFiltered],
+  )
 
   useEffect(() => {
     apiGet<{ data: CustomerRow[] }>('/revenue/customers').then((r) => setRows(r.data))
@@ -129,7 +142,18 @@ export function CustomerRevenuePage() {
         exportFilename="customer-revenue"
         exportColumns={buildExportColumns(columns)}
         exportData={filteredRows as Record<string, unknown>[]}
+        {...advanced.toolbarProps}
       />
+      {advanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={customerRevenueFilterFields()}
+          filters={advanced.filters}
+          onChange={advanced.patch}
+          onClear={advanced.clear}
+          onClose={advanced.close}
+        />
+      )}
       <DataTable
         columns={columns}
         data={filteredRows}

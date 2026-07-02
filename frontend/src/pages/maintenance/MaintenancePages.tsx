@@ -1,8 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel, type FilterField } from '../../components/common/GenericAdvancedFiltersPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { DataTable, type Column } from '../../components/common/DataTable'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { buildExportColumns } from '../../lib/export'
 import { formatCurrency } from '../../utils/format'
@@ -13,20 +15,36 @@ type ListMeta = {
   total?: number
 }
 
-type PageConfig<T> = {
+type AdvancedFilterBundle<T, F extends Record<string, string | boolean>> = {
+  defaults: F
+  isActive: (filters: F) => boolean
+  apply: (rows: T[], filters: F) => T[]
+  fields: (rows: T[], t: (key: string) => string) => FilterField[]
+}
+
+type PageConfig<T extends Record<string, unknown>, F extends Record<string, string | boolean>> = {
   endpoint: string
   exportFilename: string
   columns: Column<T>[]
   rowKey: (row: T) => string
   renderKpi?: (meta: ListMeta) => ReactNode
+  advancedFilters?: AdvancedFilterBundle<T, F>
 }
 
-export function createMaintenancePage<T extends Record<string, unknown>>(config: PageConfig<T>) {
+export function createMaintenancePage<
+  T extends Record<string, unknown>,
+  F extends Record<string, string | boolean> = Record<string, string | boolean>,
+>(config: PageConfig<T, F>) {
   return function MaintenanceListPage() {
     const { t } = useTranslation()
     const [rows, setRows] = useState<T[]>([])
     const [meta, setMeta] = useState<ListMeta>({ count: 0 })
-    const filteredRows = useFilteredRows(rows)
+    const globallyFiltered = useFilteredRows(rows)
+
+    const filterPanel = useAdvancedFilterPanel(
+      (config.advancedFilters?.defaults ?? {}) as F,
+      config.advancedFilters?.isActive ?? (() => false),
+    )
 
     useEffect(() => {
       apiGet<{ data: T[] } & ListMeta>(config.endpoint).then((r) => {
@@ -35,11 +53,20 @@ export function createMaintenancePage<T extends Record<string, unknown>>(config:
       })
     }, [])
 
+    const filteredRows = useMemo(() => {
+      if (!filterPanel || !config.advancedFilters) return globallyFiltered
+      return config.advancedFilters.apply(globallyFiltered, filterPanel.filters)
+    }, [globallyFiltered, filterPanel, config.advancedFilters])
+
     const filteredTotal = filteredRows.reduce((sum, row) => {
       if ('amount' in row && typeof row.amount === 'number') return sum + row.amount
-      if ('potentialIncome' in row && typeof row.potentialIncome === 'number') return sum + row.potentialIncome
+      if ('potentialIncome' in row && typeof row.potentialIncome === 'number') {
+        return sum + row.potentialIncome
+      }
       return sum
     }, 0)
+
+    const advancedFields = config.advancedFilters?.fields(rows, t) ?? []
 
     return (
       <div>
@@ -50,7 +77,18 @@ export function createMaintenancePage<T extends Record<string, unknown>>(config:
           exportFilename={config.exportFilename}
           exportColumns={buildExportColumns(config.columns)}
           exportData={filteredRows}
+          {...(filterPanel?.toolbarProps ?? {})}
         />
+        {filterPanel?.open && config.advancedFilters && (
+          <GenericAdvancedFiltersPanel
+            titleKey="filters.advancedFilters"
+            fields={advancedFields}
+            filters={filterPanel.filters}
+            onChange={filterPanel.patch}
+            onClear={filterPanel.clear}
+            onClose={filterPanel.close}
+          />
+        )}
         <DataTable
           columns={config.columns}
           data={filteredRows}

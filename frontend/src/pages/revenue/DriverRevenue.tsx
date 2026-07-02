@@ -1,14 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { DataTable, type Column } from '../../components/common/DataTable'
 import { DrillDownPanel } from '../../components/common/DrillDownPanel'
 import { DrillField, PageWithPanel } from '../../components/common/PageWithPanel'
 import { useApp } from '../../context/AppContext'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { buildExportColumns } from '../../lib/export'
 import { filterDateKeys } from '../../lib/filters'
+import {
+  applyDriverRevenueFilters,
+  defaultDriverRevenueFilters,
+  driverRevenueFilterFields,
+  driverRevenueFiltersActive,
+} from '../../lib/pageFilters/revenue'
 import { formatCurrency } from '../../utils/format'
 
 type DriverRow = {
@@ -31,7 +39,12 @@ export function DriverRevenuePage() {
   const { filters } = useApp()
   const [rows, setRows] = useState<DriverRow[]>([])
   const [selected, setSelected] = useState<DriverRow | null>(null)
-  const filteredRows = useFilteredRows(rows as (DriverRow & Record<string, unknown>)[]) as DriverRow[]
+  const globallyFiltered = useFilteredRows(rows as (DriverRow & Record<string, unknown>)[]) as DriverRow[]
+  const advanced = useAdvancedFilterPanel(defaultDriverRevenueFilters, driverRevenueFiltersActive)
+  const filteredRows = useMemo(
+    () => applyDriverRevenueFilters(globallyFiltered, advanced.filters),
+    [advanced.filters, globallyFiltered],
+  )
 
   useEffect(() => {
     apiGet<{ data: DriverRow[] }>('/revenue/drivers').then((r) => setRows(r.data))
@@ -125,7 +138,18 @@ export function DriverRevenuePage() {
         exportFilename="driver-revenue"
         exportColumns={exportColumns}
         exportData={filteredRows as Record<string, unknown>[]}
+        {...advanced.toolbarProps}
       />
+      {advanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={driverRevenueFilterFields(t)}
+          filters={advanced.filters}
+          onChange={advanced.patch}
+          onClear={advanced.clear}
+          onClose={advanced.close}
+        />
+      )}
       <DataTable
         columns={columns}
         data={filteredRows}

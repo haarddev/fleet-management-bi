@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
 import { apiGet } from '../../api/client'
+
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 
 import { TableToolbar } from '../../components/common/TableToolbar'
 
@@ -12,9 +14,18 @@ import { KpiCard, KpiGrid } from '../../components/common/KpiGrid'
 
 import { EmbeddedVehiclesChart } from '../../components/operation/EmbeddedVehiclesChart'
 
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
+
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 
 import { buildExportColumns } from '../../lib/export'
+
+import {
+  applyVehicleTableFilters,
+  defaultVehicleTableFilters,
+  vehicleTableFilterFields,
+  vehicleTableFiltersActive,
+} from '../../lib/pageFilters/operation'
 
 import { cn } from '../../lib/cn'
 
@@ -76,17 +87,31 @@ export function DailyStatusPage() {
 
   const [data, setData] = useState<DailyStatus | null>(null)
 
-  const filteredUnembedded = useFilteredRows(
+  const unembeddedAdvanced = useAdvancedFilterPanel(defaultVehicleTableFilters, vehicleTableFiltersActive)
+
+  const disabledAdvanced = useAdvancedFilterPanel(defaultVehicleTableFilters, vehicleTableFiltersActive)
+
+  const globallyFilteredUnembedded = useFilteredRows(
 
     (data?.unembeddedVehicles ?? []) as Record<string, unknown>[],
 
   ) as Record<string, string>[]
 
-  const filteredDisabled = useFilteredRows(
+  const globallyFilteredDisabled = useFilteredRows(
 
     (data?.disabledVehicles ?? []) as (DisabledVehicleRow & Record<string, unknown>)[],
 
   ) as DisabledVehicleRow[]
+
+  const filteredUnembedded = useMemo(
+    () => applyVehicleTableFilters(globallyFilteredUnembedded, unembeddedAdvanced.filters),
+    [globallyFilteredUnembedded, unembeddedAdvanced.filters],
+  )
+
+  const filteredDisabled = useMemo(
+    () => applyVehicleTableFilters(globallyFilteredDisabled, disabledAdvanced.filters),
+    [globallyFilteredDisabled, disabledAdvanced.filters],
+  )
 
 
 
@@ -384,7 +409,20 @@ export function DailyStatusPage() {
 
         exportData={filteredUnembedded}
 
+        {...unembeddedAdvanced.toolbarProps}
+
       />
+
+      {unembeddedAdvanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={vehicleTableFilterFields(t)}
+          filters={unembeddedAdvanced.filters}
+          onChange={unembeddedAdvanced.patch}
+          onClear={unembeddedAdvanced.clear}
+          onClose={unembeddedAdvanced.close}
+        />
+      )}
 
       <DataTable
 
@@ -426,7 +464,20 @@ export function DailyStatusPage() {
 
             exportData={filteredDisabled as Record<string, unknown>[]}
 
+            {...disabledAdvanced.toolbarProps}
+
           />
+
+          {disabledAdvanced.open && (
+            <GenericAdvancedFiltersPanel
+              titleKey="filters.advancedFilters"
+              fields={vehicleTableFilterFields(t)}
+              filters={disabledAdvanced.filters}
+              onChange={disabledAdvanced.patch}
+              onClear={disabledAdvanced.clear}
+              onClose={disabledAdvanced.close}
+            />
+          )}
 
           <DataTable
 

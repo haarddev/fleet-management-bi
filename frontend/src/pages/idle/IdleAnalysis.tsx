@@ -1,15 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 import { DateRangeFilter } from '../../components/common/DateRangeFilter'
 import { DrillDownPanel } from '../../components/common/DrillDownPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { DataTable, type Column } from '../../components/common/DataTable'
 import { DrillField, PageWithPanel } from '../../components/common/PageWithPanel'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { buildExportColumns, downloadCsv } from '../../lib/export'
 import { demoDateRange, formatRangeDisplay, toInputDate } from '../../lib/dateRange'
 import { driverIdleDummyRows, vehicleIdleDummyRows } from '../../lib/idleMockData'
+import {
+  applyIdleDriverFilters,
+  applyIdleVehicleFilters,
+  defaultIdleDriverFilters,
+  defaultIdleVehicleFilters,
+  idleDriverFilterFields,
+  idleDriverFiltersActive,
+  idleVehicleFilterFields,
+  idleVehicleFiltersActive,
+} from '../../lib/pageFilters/idle'
 import { formatPercent } from '../../utils/format'
 
 type IdleVehicle = {
@@ -178,7 +190,12 @@ export function VehicleIdleAnalysisPage() {
   const [draftEnd, setDraftEnd] = useState('')
   const [appliedStart, setAppliedStart] = useState('')
   const [appliedEnd, setAppliedEnd] = useState('')
-  const filteredRows = useFilteredRows(rows as (IdleVehicle & Record<string, unknown>)[]) as IdleVehicle[]
+  const globallyFilteredRows = useFilteredRows(rows as (IdleVehicle & Record<string, unknown>)[]) as IdleVehicle[]
+  const advanced = useAdvancedFilterPanel(defaultIdleVehicleFilters, idleVehicleFiltersActive)
+  const filteredRows = useMemo(
+    () => applyIdleVehicleFilters(globallyFilteredRows, advanced.filters),
+    [advanced.filters, globallyFilteredRows],
+  )
 
   const fetchData = useCallback((start: string, end: string) => {
     apiGet<{ data: IdleVehicle[] }>('/idle/vehicles', { startDate: start, endDate: end })
@@ -365,7 +382,18 @@ export function VehicleIdleAnalysisPage() {
         exportFilename="vehicle-idle-analysis"
         exportColumns={buildExportColumns(columns)}
         exportData={filteredRows as Record<string, unknown>[]}
+        {...advanced.toolbarProps}
       />
+      {advanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={idleVehicleFilterFields()}
+          filters={advanced.filters}
+          onChange={advanced.patch}
+          onClear={advanced.clear}
+          onClose={advanced.close}
+        />
+      )}
       <DataTable
         columns={columns}
         data={filteredRows}
@@ -388,7 +416,12 @@ export function DriverIdleAnalysisPage() {
   const [draftEnd, setDraftEnd] = useState('')
   const [appliedStart, setAppliedStart] = useState('')
   const [appliedEnd, setAppliedEnd] = useState('')
-  const filteredRows = useFilteredRows(rows as (IdleDriver & Record<string, unknown>)[]) as IdleDriver[]
+  const globallyFilteredRows = useFilteredRows(rows as (IdleDriver & Record<string, unknown>)[]) as IdleDriver[]
+  const advanced = useAdvancedFilterPanel(defaultIdleDriverFilters, idleDriverFiltersActive)
+  const filteredRows = useMemo(
+    () => applyIdleDriverFilters(globallyFilteredRows, advanced.filters),
+    [advanced.filters, globallyFilteredRows],
+  )
 
   const fetchData = useCallback((start: string, end: string) => {
     apiGet<{ data: IdleDriver[] }>('/idle/drivers', { startDate: start, endDate: end })
@@ -578,7 +611,18 @@ export function DriverIdleAnalysisPage() {
         exportFilename="driver-idle-analysis"
         exportColumns={buildExportColumns(columns)}
         exportData={filteredRows as Record<string, unknown>[]}
+        {...advanced.toolbarProps}
       />
+      {advanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={idleDriverFilterFields()}
+          filters={advanced.filters}
+          onChange={advanced.patch}
+          onClear={advanced.clear}
+          onClose={advanced.close}
+        />
+      )}
       <DataTable
         columns={columns}
         data={filteredRows}

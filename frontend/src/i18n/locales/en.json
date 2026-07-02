@@ -109,7 +109,10 @@
     "weekdays": "Weekdays (Sun–Thu)",
     "weekend": "Weekend / Friday",
     "vehicles": "{{count}} vehicles",
-    "holiday": "Holiday"
+    "holiday": "Holiday",
+    "viewMode": "View",
+    "revenueBreakdown": "Revenue type",
+    "dayFilter": "Day filter"
   },
   "vehicleRevenue": {
     "title": "Vehicle Revenue",
@@ -271,5 +274,40 @@
     "selectedDriverKpis": "Selected driver KPIs",
     "productiveTravel": "Productive travel",
     "vehiclesOperatedDay": "Number of vehicles"
+  },
+  "filters": {
+    "advancedFilters": "Advanced filters",
+    "all": "All",
+    "dateFrom": "Date from",
+    "dateTo": "Date to",
+    "minRevenue": "Min revenue",
+    "maxRevenue": "Max revenue",
+    "minTrips": "Min trips",
+    "minVehicles": "Min vehicles",
+    "minContractorShare": "Min contractor share %",
+    "losingVehiclesOnly": "Customers with losing vehicles only",
+    "minTotal": "Min total",
+    "maxTotal": "Max total",
+    "excludeZeroRevenue": "Exclude zero revenue",
+    "minOperatingDays": "Min operating days",
+    "holidaysOnly": "Holidays only",
+    "minDaysOff": "Min days off",
+    "maxDaysOff": "Max days off",
+    "minStandingDays": "Min standing days",
+    "reason": "Reason",
+    "supplier": "Supplier",
+    "serviceType": "Service type",
+    "category": "Category",
+    "provider": "Provider",
+    "minAmount": "Min amount",
+    "maxAmount": "Max amount",
+    "fromArea": "From area",
+    "toArea": "To area",
+    "hasNotesOnly": "With notes only",
+    "cancelledOnly": "Cancelled trips only",
+    "minProductivity": "Min productivity %",
+    "maxProductivity": "Max productivity %",
+    "minTotalKm": "Min total km",
+    "minVehicleCount": "Min vehicle count"
   }
 }

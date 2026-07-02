@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { KpiCard, KpiGrid } from '../../components/common/KpiGrid'
 import { PageTabs } from '../../components/common/PageTabs'
 import { useApp } from '../../context/AppContext'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { filterDateKeys } from '../../lib/filters'
+import {
+  applyWeeklyCenterFilters,
+  defaultWeeklyCenterFilters,
+  weeklyCenterFilterFields,
+  weeklyCenterFiltersActive,
+} from '../../lib/pageFilters/revenue'
 import { cn } from '../../lib/cn'
 import { formatChange, formatCurrency, formatDate, formatKpiNumber } from '../../utils/format'
 
@@ -51,6 +59,7 @@ export function WeeklyCenterPage() {
   const [viewTab, setViewTab] = useState('summary')
   const [revenueTab, setRevenueTab] = useState('summary')
   const [dayTypeTab, setDayTypeTab] = useState('weekly')
+  const advanced = useAdvancedFilterPanel(defaultWeeklyCenterFilters, weeklyCenterFiltersActive)
 
   useEffect(() => {
     apiGet<WeeklyCenterData>('/revenue/weekly-center').then(setData).catch(console.error)
@@ -77,7 +86,11 @@ export function WeeklyCenterPage() {
     )
   }, [data, filters.period])
 
-  const filteredExportRows = useFilteredRows(exportRows)
+  const globallyFilteredExportRows = useFilteredRows(exportRows)
+  const filteredExportRows = useMemo(
+    () => applyWeeklyCenterFilters(globallyFilteredExportRows, advanced.filters),
+    [globallyFilteredExportRows, advanced.filters],
+  )
 
   const visibleWeeks = useMemo(() => {
     if (!data) return []
@@ -120,24 +133,54 @@ export function WeeklyCenterPage() {
         <KpiCard label={t('weeklyCenter.days')} value={String(data.kpis.days)} variant="success" />
       </KpiGrid>
 
-      <PageTabs
-        tabs={[
-          { key: 'summary', label: t('weeklyCenter.summary') },
-          { key: 'tabular', label: t('weeklyCenter.tabular') },
-        ]}
-        active={viewTab}
-        onChange={setViewTab}
-      />
+      <div className="card mb-5 flex flex-col gap-4 p-4">
+        <div className="flex min-w-0 flex-wrap items-end gap-x-5 gap-y-4">
+          <PageTabs
+            label={t('weeklyCenter.viewMode')}
+            tabs={[
+              { key: 'summary', label: t('weeklyCenter.summary'), icon: 'summary' },
+              { key: 'tabular', label: t('weeklyCenter.tabular'), icon: 'table' },
+            ]}
+            active={viewTab}
+            onChange={setViewTab}
+            className="mb-0"
+          />
 
-      <PageTabs
-        tabs={[
-          { key: 'summary', label: t('weeklyCenter.summary') },
-          { key: 'organic', label: t('weeklyCenter.organic') },
-          { key: 'contractors', label: t('weeklyCenter.contractors') },
-        ]}
-        active={revenueTab}
-        onChange={setRevenueTab}
-      />
+          <div
+            className="hidden h-9 w-px shrink-0 bg-gradient-to-b from-transparent via-slate-200 to-transparent sm:block"
+            aria-hidden
+          />
+
+          <PageTabs
+            label={t('weeklyCenter.revenueBreakdown')}
+            tabs={[
+              { key: 'summary', label: t('weeklyCenter.summary'), icon: 'summary' },
+              { key: 'organic', label: t('weeklyCenter.organic'), icon: 'organic' },
+              { key: 'contractors', label: t('weeklyCenter.contractors'), icon: 'contractors' },
+            ]}
+            active={revenueTab}
+            onChange={setRevenueTab}
+            className="mb-0"
+          />
+
+          <div
+            className="hidden h-9 w-px shrink-0 bg-gradient-to-b from-transparent via-slate-200 to-transparent sm:block"
+            aria-hidden
+          />
+
+          <PageTabs
+            label={t('weeklyCenter.dayFilter')}
+            tabs={[
+              { key: 'weekly', label: t('weeklyCenter.weekly'), icon: 'calendar' },
+              { key: 'weekdays', label: t('weeklyCenter.weekdays'), icon: 'weekdays' },
+              { key: 'weekend', label: t('weeklyCenter.weekend'), icon: 'weekend' },
+            ]}
+            active={dayTypeTab}
+            onChange={setDayTypeTab}
+            className="mb-0"
+          />
+        </div>
+      </div>
 
       <TableToolbar
         resultCount={filteredExportRows.length}
@@ -145,7 +188,18 @@ export function WeeklyCenterPage() {
         exportFilename="weekly-center"
         exportColumns={exportColumns}
         exportData={filteredExportRows}
+        {...advanced.toolbarProps}
       />
+      {advanced.open && (
+        <GenericAdvancedFiltersPanel
+          titleKey="filters.advancedFilters"
+          fields={weeklyCenterFilterFields()}
+          filters={advanced.filters}
+          onChange={advanced.patch}
+          onClear={advanced.clear}
+          onClose={advanced.close}
+        />
+      )}
 
       <div className="flex flex-col gap-5">
         {visibleWeeks.map((week) => (
@@ -222,16 +276,6 @@ export function WeeklyCenterPage() {
           </div>
         ))}
       </div>
-
-      <PageTabs
-        tabs={[
-          { key: 'weekly', label: t('weeklyCenter.weekly') },
-          { key: 'weekdays', label: t('weeklyCenter.weekdays') },
-          { key: 'weekend', label: t('weeklyCenter.weekend') },
-        ]}
-        active={dayTypeTab}
-        onChange={setDayTypeTab}
-      />
     </div>
   )
 }

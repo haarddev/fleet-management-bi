@@ -109,7 +109,10 @@
     "weekdays": "ימי חול",
     "weekend": "סופ״ש / שישי",
     "vehicles": "{{count}} רכבים",
-    "holiday": "חג"
+    "holiday": "חג",
+    "viewMode": "תצוגה",
+    "revenueBreakdown": "סוג הכנסה",
+    "dayFilter": "סינון ימים"
   },
   "vehicleRevenue": {
     "title": "הכנסות לפי רכב",
@@ -271,5 +274,40 @@
     "selectedDriverKpis": "מדדי נהג נבחר",
     "productiveTravel": "נסיעות מייצרות",
     "vehiclesOperatedDay": "מספר רכבים"
+  },
+  "filters": {
+    "advancedFilters": "סינון מתקדם",
+    "all": "הכל",
+    "dateFrom": "מתאריך",
+    "dateTo": "עד תאריך",
+    "minRevenue": "הכנסה מינימלית",
+    "maxRevenue": "הכנסה מקסימלית",
+    "minTrips": "מינימום נסיעות",
+    "minVehicles": "מינימום רכבים",
+    "minContractorShare": "מינימום % קבלן",
+    "losingVehiclesOnly": "לקוחות עם רכבים בהפסד בלבד",
+    "minTotal": "סה״כ מינימלי",
+    "maxTotal": "סה״כ מקסימלי",
+    "excludeZeroRevenue": "הסתר הכנסה אפס",
+    "minOperatingDays": "מינימום ימי פעילות",
+    "holidaysOnly": "חגים בלבד",
+    "minDaysOff": "מינימום ימי השבתה",
+    "maxDaysOff": "מקסימום ימי השבתה",
+    "minStandingDays": "מינימום ימי עמידה",
+    "reason": "סיבה",
+    "supplier": "ספק",
+    "serviceType": "סוג שירות",
+    "category": "קטגוריה",
+    "provider": "ספק שירות",
+    "minAmount": "סכום מינימלי",
+    "maxAmount": "סכום מקסימלי",
+    "fromArea": "מאזור",
+    "toArea": "לאזור",
+    "hasNotesOnly": "עם הערות בלבד",
+    "cancelledOnly": "נסיעות שבוטלו בלבד",
+    "minProductivity": "מינימום % ייצור",
+    "maxProductivity": "מקסימום % ייצור",
+    "minTotalKm": "מינימום סה״כ ק״מ",
+    "minVehicleCount": "מינימום מספר רכבים"
   }
 }

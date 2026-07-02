@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiGet } from '../../api/client'
+import { GenericAdvancedFiltersPanel } from '../../components/common/GenericAdvancedFiltersPanel'
 import { TableToolbar } from '../../components/common/TableToolbar'
 import { DataTable, type Column } from '../../components/common/DataTable'
+import { useAdvancedFilterPanel } from '../../hooks/useAdvancedFilterPanel'
 import { useFilteredRows } from '../../hooks/useFilteredRows'
 import { buildExportColumns } from '../../lib/export'
+import {
+  applyWorkScheduleFilters,
+  applyWorkScheduleLogFilters,
+  defaultWorkScheduleFilters,
+  defaultWorkScheduleLogFilters,
+  workScheduleFilterFields,
+  workScheduleFiltersActive,
+  workScheduleLogFilterFields,
+  workScheduleLogFiltersActive,
+} from '../../lib/pageFilters/operation'
 import { cn } from '../../lib/cn'
 import { formatCurrency, formatDate } from '../../utils/format'
 
@@ -54,7 +66,17 @@ export function WorkSchedulePage() {
   const [rows, setRows] = useState<TripRow[]>([])
   const [statusLogs, setStatusLogs] = useState<TravelStatusLog[]>([])
   const [marked, setMarked] = useState<Record<string, boolean>>({})
-  const filteredRows = useFilteredRows(rows as (TripRow & Record<string, unknown>)[]) as TripRow[]
+  const globallyFilteredRows = useFilteredRows(rows as (TripRow & Record<string, unknown>)[]) as TripRow[]
+  const tripsAdvanced = useAdvancedFilterPanel(defaultWorkScheduleFilters, workScheduleFiltersActive)
+  const logsAdvanced = useAdvancedFilterPanel(defaultWorkScheduleLogFilters, workScheduleLogFiltersActive)
+  const filteredRows = useMemo(
+    () => applyWorkScheduleFilters(globallyFilteredRows, tripsAdvanced.filters, marked),
+    [globallyFilteredRows, tripsAdvanced.filters, marked],
+  )
+  const filteredStatusLogs = useMemo(
+    () => applyWorkScheduleLogFilters(statusLogs, logsAdvanced.filters),
+    [statusLogs, logsAdvanced.filters],
+  )
 
   useEffect(() => {
     apiGet<{ data: TripRow[]; count: number; travelStatusLogs: TravelStatusLog[] }>(
@@ -148,7 +170,18 @@ export function WorkSchedulePage() {
             ...r,
             confirmed: marked[r.tripId] ?? r.confirmed,
           })) as Record<string, unknown>[]}
+          {...tripsAdvanced.toolbarProps}
         />
+        {tripsAdvanced.open && (
+          <GenericAdvancedFiltersPanel
+            titleKey="filters.advancedFilters"
+            fields={workScheduleFilterFields(t)}
+            filters={tripsAdvanced.filters}
+            onChange={tripsAdvanced.patch}
+            onClear={tripsAdvanced.clear}
+            onClose={tripsAdvanced.close}
+          />
+        )}
         <DataTable columns={columns} data={filteredRows} rowKey={(r) => r.tripId} stickyFirst emptyMessage={t('common.noData')} />
         <div className="mt-4 flex flex-wrap gap-6 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50 to-indigo-50/50 px-5 py-4 text-sm font-bold text-slate-700 shadow-sm">
           <span>SUM Estimated: {formatCurrency(summary.sumEstimated)}</span>
@@ -203,15 +236,26 @@ export function WorkSchedulePage() {
         </div>
 
         <TableToolbar
-          resultCount={statusLogs.length}
+          resultCount={filteredStatusLogs.length}
           totalCount={statusLogs.length}
           exportFilename="travel-status-logs"
           exportColumns={buildExportColumns(logColumns)}
-          exportData={statusLogs as Record<string, unknown>[]}
+          exportData={filteredStatusLogs as Record<string, unknown>[]}
+          {...logsAdvanced.toolbarProps}
         />
+        {logsAdvanced.open && (
+          <GenericAdvancedFiltersPanel
+            titleKey="filters.advancedFilters"
+            fields={workScheduleLogFilterFields(t)}
+            filters={logsAdvanced.filters}
+            onChange={logsAdvanced.patch}
+            onClear={logsAdvanced.clear}
+            onClose={logsAdvanced.close}
+          />
+        )}
         <DataTable
           columns={logColumns}
-          data={statusLogs}
+          data={filteredStatusLogs}
           rowKey={(r) => r.id}
           stickyFirst
           emptyMessage={t('common.noData')}
