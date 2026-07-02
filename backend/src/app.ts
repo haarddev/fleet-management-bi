@@ -11,6 +11,7 @@ import {
   operationRouter,
   revenueRouter,
 } from './routes/modules.js';
+import { requireModule } from './middleware/rbac.js';
 
 export function createApp() {
   const app = express();
@@ -29,11 +30,11 @@ export function createApp() {
     }
     authMiddleware(req, res, next);
   });
-  app.use('/api/revenue', revenueRouter);
-  app.use('/api/maintenance', maintenanceRouter);
-  app.use('/api/management', managementRouter);
-  app.use('/api/operation', operationRouter);
-  app.use('/api/idle', idleRouter);
+  app.use('/api/revenue', requireModule('revenue'), revenueRouter);
+  app.use('/api/maintenance', requireModule('maintenance'), maintenanceRouter);
+  app.use('/api/management', requireModule('management'), managementRouter);
+  app.use('/api/operation', requireModule('operation'), operationRouter);
+  app.use('/api/idle', requireModule('idle'), idleRouter);
 
   app.get('/api', (_req, res) => {
     res.json({

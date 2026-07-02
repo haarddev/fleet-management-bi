@@ -15,7 +15,7 @@
 
 @layer base {
   html {
-    @apply h-full antialiased scroll-smooth;
+    @apply h-full overflow-x-hidden antialiased scroll-smooth;
   }
 
   body {

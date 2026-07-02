@@ -15,6 +15,7 @@ A bilingual business intelligence dashboard for fleet operations. The app covers
 ### Highlights
 
 - JWT authentication with protected API routes
+- **Role-based access control (RBAC)** with four roles: Admin, Manager, Maintenance, Viewer
 - Global filters (period, area, search) applied across data tables
 - Advanced filters on selected modules (vehicle revenue, inventory, activity log)
 - Drill-down panels for revenue, idle analysis, and related views

@@ -2,9 +2,19 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
+import { useApp } from '../../context/AppContext'
+import { usePermissions } from '../../hooks/usePermissions'
+import { cn } from '../../lib/cn'
+
+function LoginRedirect({ from }: { from: string }) {
+  const { canAccessPath, defaultPath } = usePermissions()
+  const target = canAccessPath(from) ? from : defaultPath
+  return <Navigate to={target} replace />
+}
 
 export function LoginPage() {
   const { t } = useTranslation()
+  const { language, setLanguage } = useApp()
   const { login, isAuthenticated } = useAuth()
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/daily'
@@ -15,7 +25,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (isAuthenticated) {
-    return <Navigate to={from} replace />
+    return <LoginRedirect from={from} />
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -32,12 +42,31 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex h-full min-h-0 items-center justify-center overflow-auto p-6">
+    <div className="relative isolate flex h-dvh w-full items-center justify-center overflow-hidden p-4 sm:p-6">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-primary" />
       <div className="pointer-events-none absolute -start-32 -top-32 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -end-32 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -end-32 -bottom-32 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
 
-      <div className="card relative w-full max-w-md p-8 shadow-elevated">
+      <div className="card relative z-10 w-full max-w-md p-6 shadow-elevated sm:p-8">
+        <div className="mb-5 flex justify-end">
+          <div className="flex rounded-xl border border-slate-200 bg-slate-50/90 p-1 shadow-sm">
+            {(['he', 'en'] as const).map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                className={cn(
+                  'cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition duration-200',
+                  language === lang
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800',
+                )}
+                onClick={() => setLanguage(lang)}
+              >
+                {lang === 'he' ? t('common.hebrew') : t('common.english')}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mb-8 flex items-center gap-4">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-400 text-lg font-bold text-white shadow-lg shadow-blue-500/30">
             BI
@@ -88,7 +117,7 @@ export function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">{t('auth.demoHint')}</p>
+      
       </div>
     </div>
   )

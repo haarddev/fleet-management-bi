@@ -1,8 +1,15 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { usePermissions } from '../hooks/usePermissions'
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+type ProtectedRouteProps = {
+  children: React.ReactNode
+  path?: string
+}
+
+export function ProtectedRoute({ children, path }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth()
+  const { canAccessPath, defaultPath } = usePermissions()
   const location = useLocation()
 
   if (isLoading) {
@@ -16,6 +23,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  if (path && !canAccessPath(path)) {
+    return <Navigate to={defaultPath} replace />
   }
 
   return children

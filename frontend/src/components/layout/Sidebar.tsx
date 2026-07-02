@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { navigation, type NavItem } from '../../config/navigation'
+import { usePermissions } from '../../hooks/usePermissions'
 import { NavSectionIcon } from '../icons/NavIcons'
 import { cn } from '../../lib/cn'
 
@@ -25,11 +26,18 @@ function NavDot({ isActive }: { isActive?: boolean }) {
 
 function NavSection({ item }: { item: NavItem }) {
   const { t } = useTranslation()
+  const { canAccessSection } = usePermissions()
   const [expanded, setExpanded] = useState(item.defaultExpanded ?? false)
+
+  if (!canAccessSection(item.key)) return null
+
+  const visibleChildren = item.children?.filter((child) => !child.path || canAccessSection(item.key)) ?? []
 
   if (!item.children?.length) {
     return item.path ? <NavLink to={item.path} className={linkClass}>{t(item.labelKey)}</NavLink> : null
   }
+
+  if (!visibleChildren.length) return null
 
   return (
     <div className="mb-1">
@@ -57,7 +65,7 @@ function NavSection({ item }: { item: NavItem }) {
       </button>
       {expanded && (
         <div className="mt-0.5 space-y-0.5 border-s border-white/5 ps-5 ms-3.5">
-          {item.children.map((child) =>
+          {visibleChildren.map((child) =>
             child.path ? (
               <NavLink key={child.key} to={child.path} className={linkClass}>
                 {({ isActive }) => (
@@ -77,6 +85,11 @@ function NavSection({ item }: { item: NavItem }) {
 
 export function Sidebar() {
   const { t } = useTranslation()
+  const { canAccessSection } = usePermissions()
+
+  const settingsItem: NavItem | null = canAccessSection('settings')
+    ? { key: 'settings', labelKey: 'nav.settings', path: '/settings' }
+    : null
 
   return (
     <aside className="relative flex h-screen w-[280px] min-w-[280px] shrink-0 flex-col overflow-y-auto border-e border-white/5 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl shadow-slate-900/40">
@@ -96,6 +109,7 @@ export function Sidebar() {
         {navigation.map((item) => (
           <NavSection key={item.key} item={item} />
         ))}
+        {settingsItem && <NavSection item={settingsItem} />}
       </nav>
 
       <div className="relative mt-auto border-t border-white/8 p-4">

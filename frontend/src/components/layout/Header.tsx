@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
+import { usePermissions } from '../../hooks/usePermissions'
 import { cn } from '../../lib/cn'
 
 type HeaderProps = {
@@ -12,6 +13,7 @@ export function Header({ title }: HeaderProps) {
   const { t } = useTranslation()
   const { setLanguage, language } = useApp()
   const { user, logout } = useAuth()
+  const { role } = usePermissions()
   const navigate = useNavigate()
 
   const initials = (user?.name ?? 'U')
@@ -34,7 +36,14 @@ export function Header({ title }: HeaderProps) {
         </div>
         <div className="hidden flex-col leading-tight sm:flex">
           <span className="text-sm font-semibold text-slate-900">{user?.name}</span>
-          <span className="text-xs text-slate-500">{user?.email}</span>
+          <span className="text-xs text-slate-500">
+            {user?.email}
+            {role && (
+              <span className="ms-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                {t(`roles.${role}`)}
+              </span>
+            )}
+          </span>
         </div>
       </div>
 

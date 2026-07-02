@@ -11,7 +11,13 @@
     "password": "סיסמה",
     "logout": "התנתקות",
     "loginFailed": "ההתחברות נכשלה. נסה שוב.",
-    "demoHint": "דמו: admin@fleet-bi.com / admin123"
+    "demoHint": "חשבונות בדיקה: admin@fleet-bi.com / admin123 · manager@fleet-bi.com / manager123 · maintenance@fleet-bi.com / maintenance123 · viewer@fleet-bi.com / viewer123"
+  },
+  "roles": {
+    "admin": "מנהל מערכת",
+    "manager": "מנהל תפעול",
+    "maintenance": "תחזוקה",
+    "viewer": "צפייה בלבד"
   },
   "nav": {
     "revenue": "הכנסות",
@@ -33,7 +39,12 @@
     "dailyStatus": "סטטוס יומי",
     "workSchedule": "סידור עבודה",
     "vehicleIdleAnalysis": "ניתוח בטלה לרכב",
-    "driverIdleAnalysis": "ניתוח בטלה לנהג"
+    "driverIdleAnalysis": "ניתוח בטלה לנהג",
+    "settings": "הגדרות"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "comingSoon": "הגדרות ארגון וניהול הרשאות יהיו זמינות כאן בקרוב."
   },
   "common": {
     "period": "תקופה",

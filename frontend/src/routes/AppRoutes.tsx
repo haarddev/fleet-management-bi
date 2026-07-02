@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GlobalFiltersBar } from '../components/layout/GlobalFilters'
 import { MainLayout } from '../components/layout/MainLayout'
@@ -15,11 +15,13 @@ import {
 import { DailyStatusPage } from '../pages/operation/DailyStatus'
 import { WorkSchedulePage } from '../pages/operation/WorkSchedule'
 import { DriverIdleAnalysisPage, VehicleIdleAnalysisPage } from '../pages/idle/IdleAnalysis'
+import { SettingsPage } from '../pages/settings/SettingsPage'
 import { CustomerRevenuePage } from '../pages/revenue/CustomerRevenue'
 import { DriverRevenuePage } from '../pages/revenue/DriverRevenue'
 import { VehicleRevenuePage } from '../pages/revenue/VehicleRevenue'
 import { WeeklyCenterPage } from '../pages/revenue/WeeklyCenter'
 import { ProtectedRoute } from './ProtectedRoute'
+import { HomeRedirect } from './HomeRedirect'
 
 type ScreenRoute = {
   path: string
@@ -61,6 +63,7 @@ const screens: ScreenRoute[] = [
   { path: '/operation/work-schedule', titleKey: 'operation.workSchedule', element: <WorkSchedulePage /> },
   { path: '/idle/vehicle-analysis', titleKey: 'idle.vehicleAnalysis', element: <VehicleIdleAnalysisPage /> },
   { path: '/idle/driver-analysis', titleKey: 'idle.driverAnalysis', element: <DriverIdleAnalysisPage /> },
+  { path: '/settings', titleKey: 'settings.title', element: <SettingsPage /> },
 ]
 
 export function AppRoutes() {
@@ -71,7 +74,7 @@ export function AppRoutes() {
         path="/"
         element={
           <ProtectedRoute>
-            <Navigate to="/daily" replace />
+            <HomeRedirect />
           </ProtectedRoute>
         }
       />
@@ -80,7 +83,7 @@ export function AppRoutes() {
           key={screen.path}
           path={screen.path}
           element={
-            <ProtectedRoute>
+            <ProtectedRoute path={screen.path}>
               <ScreenRouteWrapper
                 titleKey={screen.titleKey}
                 showPriceToggle={screen.showPriceToggle}
