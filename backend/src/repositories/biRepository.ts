@@ -413,7 +413,7 @@ export async function getWorkScheduleFromDb() {
 }
 
 export async function getVehicleIdleFromDb(opts?: { startDate?: string; endDate?: string }) {
-  const where: import('@prisma/client').Prisma.VehicleIdleStatWhereInput = {};
+  const where: import('../generated/prisma/client.js').Prisma.VehicleIdleStatWhereInput = {};
 
   if (opts?.startDate && opts?.endDate) {
     const start = new Date(opts.startDate);
@@ -447,7 +447,7 @@ export async function getVehicleIdleFromDb(opts?: { startDate?: string; endDate?
 }
 
 export async function getDriverIdleFromDb(opts?: { startDate?: string; endDate?: string }) {
-  const where: import('@prisma/client').Prisma.DriverIdleStatWhereInput = {};
+  const where: import('../generated/prisma/client.js').Prisma.DriverIdleStatWhereInput = {};
 
   if (opts?.startDate && opts?.endDate) {
     const start = new Date(opts.startDate);

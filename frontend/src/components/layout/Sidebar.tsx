@@ -34,7 +34,23 @@ function NavSection({ item }: { item: NavItem }) {
   const visibleChildren = item.children?.filter((child) => !child.path || canAccessSection(item.key)) ?? []
 
   if (!item.children?.length) {
-    return item.path ? <NavLink to={item.path} className={linkClass}>{t(item.labelKey)}</NavLink> : null
+    return item.path ? (
+      <NavLink to={item.path} className={linkClass}>
+        {({ isActive }) => (
+          <>
+            <span
+              className={cn(
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition duration-200',
+                isActive ? 'bg-blue-500/20 text-white' : 'bg-white/5 text-slate-300 group-hover:text-slate-100',
+              )}
+            >
+              <NavSectionIcon sectionKey={item.key} className="h-3.5 w-3.5" />
+            </span>
+            {t(item.labelKey)}
+          </>
+        )}
+      </NavLink>
+    ) : null
   }
 
   if (!visibleChildren.length) return null

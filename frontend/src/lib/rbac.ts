@@ -50,6 +50,10 @@ export function canExport(role: string | undefined): boolean {
   return normalizeRole(role) !== 'viewer'
 }
 
+export function isAdmin(role: string | undefined): boolean {
+  return normalizeRole(role) === 'admin'
+}
+
 export function getDefaultPathForRole(role: string | undefined): string {
   const normalized = normalizeRole(role)
   if (normalized === 'maintenance') return '/maintenance/vehicle-inventory'

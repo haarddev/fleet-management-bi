@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../db/prisma.js';
+import { query } from '../db/pool.js';
 import { authMiddleware, signToken } from '../middleware/auth.js';
 
 export const authRouter = Router();
@@ -23,6 +24,15 @@ authRouter.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       res.status(401).json({ error: 'Invalid email or password' });
+      return;
+    }
+
+    const activeResult = await query<{ is_active: boolean }>(
+      'SELECT is_active FROM users WHERE id = $1',
+      [user.id],
+    );
+    if (activeResult.rows[0]?.is_active === false) {
+      res.status(403).json({ error: 'Account is deactivated. Contact an administrator.' });
       return;
     }
 

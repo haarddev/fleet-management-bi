@@ -28,20 +28,26 @@ type ScreenRoute = {
   titleKey: string
   element: React.ReactNode
   showPriceToggle?: boolean
+  showGlobalFilters?: boolean
 }
 
 function ScreenRouteWrapper({
   titleKey,
   showPriceToggle,
+  showGlobalFilters = true,
   element,
 }: {
   titleKey: string
   showPriceToggle?: boolean
+  showGlobalFilters?: boolean
   element: React.ReactNode
 }) {
   const { t } = useTranslation()
   return (
-    <MainLayout title={t(titleKey)} filters={<GlobalFiltersBar showPriceToggle={showPriceToggle} />}>
+    <MainLayout
+      title={t(titleKey)}
+      filters={showGlobalFilters ? <GlobalFiltersBar showPriceToggle={showPriceToggle} /> : undefined}
+    >
       {element}
     </MainLayout>
   )
@@ -63,7 +69,7 @@ const screens: ScreenRoute[] = [
   { path: '/operation/work-schedule', titleKey: 'operation.workSchedule', element: <WorkSchedulePage /> },
   { path: '/idle/vehicle-analysis', titleKey: 'idle.vehicleAnalysis', element: <VehicleIdleAnalysisPage /> },
   { path: '/idle/driver-analysis', titleKey: 'idle.driverAnalysis', element: <DriverIdleAnalysisPage /> },
-  { path: '/settings', titleKey: 'settings.title', element: <SettingsPage /> },
+  { path: '/settings', titleKey: 'settings.title', element: <SettingsPage />, showGlobalFilters: false },
 ]
 
 export function AppRoutes() {
@@ -87,6 +93,7 @@ export function AppRoutes() {
               <ScreenRouteWrapper
                 titleKey={screen.titleKey}
                 showPriceToggle={screen.showPriceToggle}
+                showGlobalFilters={screen.showGlobalFilters}
                 element={screen.element}
               />
             </ProtectedRoute>

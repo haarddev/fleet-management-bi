@@ -1,18 +1,50 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Navigate } from 'react-router-dom'
+import { PageTabs } from '../../components/common/PageTabs'
+import { usePermissions } from '../../hooks/usePermissions'
+import { RolesAccess } from './RolesAccess'
+import { SystemSettings } from './SystemSettings'
+import { UserManagement } from './UserManagement'
 
 export function SettingsPage() {
   const { t } = useTranslation()
+  const { isAdmin } = usePermissions()
+  const [tab, setTab] = useState('users')
+
+  if (!isAdmin) {
+    return <Navigate to="/daily" replace />
+  }
 
   return (
-    <div className="card p-8 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-primary">
-        <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-        </svg>
+    <div className="space-y-5">
+      <div className="card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{t('settings.title')}</h2>
+            <p className="mt-1 text-sm text-slate-500">{t('settings.subtitle')}</p>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-primary">
+            {t('settings.adminOnly')}
+          </span>
+        </div>
       </div>
-      <h2 className="text-lg font-bold text-slate-900">{t('settings.title')}</h2>
-      <p className="mt-2 text-sm text-slate-500">{t('settings.comingSoon')}</p>
+
+      <PageTabs
+        label={t('settings.adminSections')}
+        tabs={[
+          { key: 'users', label: t('settings.userManagement'), icon: 'contractors' },
+          { key: 'roles', label: t('settings.rolesAccess'), icon: 'summary' },
+          { key: 'system', label: t('settings.systemSettings'), icon: 'table' },
+        ]}
+        active={tab}
+        onChange={setTab}
+        className="mb-0"
+      />
+
+      {tab === 'users' ? <UserManagement /> : null}
+      {tab === 'roles' ? <RolesAccess /> : null}
+      {tab === 'system' ? <SystemSettings /> : null}
     </div>
   )
 }

@@ -14,7 +14,12 @@ export const API_MODULE_ROLES: Record<string, readonly UserRole[]> = {
   management: ['admin', 'manager', 'viewer'],
   operation: ['admin', 'manager', 'viewer'],
   idle: ['admin', 'viewer'],
+  settings: ['admin'],
 };
+
+export function isAdminRole(role: string | undefined): boolean {
+  return normalizeRole(role) === 'admin';
+}
 
 export function normalizeRole(role: string | undefined): UserRole | null {
   if (!role) return null;

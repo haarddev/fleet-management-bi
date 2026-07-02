@@ -36,16 +36,32 @@ export async function apiGet<T>(path: string, params?: Record<string, string>): 
 }
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  return apiRequest<T>('POST', path, body)
+}
+
+export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  return apiRequest<T>('PATCH', path, body)
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  return apiRequest<T>('DELETE', path)
+}
+
+async function apiRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(resolveUrl(path), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(body),
+    method,
+    headers: {
+      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...authHeaders(),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   })
   if (res.status === 401) throw new AuthError('Unauthorized')
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string }
     throw new Error(err.error ?? `API error: ${res.status}`)
   }
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
 

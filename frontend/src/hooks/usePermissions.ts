@@ -5,6 +5,7 @@ import {
   canAccessSection,
   canExport,
   getDefaultPathForRole,
+  isAdmin,
   normalizeRole,
   type UserRole,
 } from '../lib/rbac'
@@ -18,6 +19,7 @@ export function usePermissions() {
       canAccessPath: (path: string) => canAccessPath(user?.role, path),
       canAccessSection: (section: string) => canAccessSection(user?.role, section),
       canExport: canExport(user?.role),
+      isAdmin: isAdmin(user?.role),
       defaultPath: getDefaultPathForRole(user?.role),
     }),
     [user?.role],

@@ -12,6 +12,7 @@ import {
   revenueRouter,
 } from './routes/modules.js';
 import { requireModule } from './middleware/rbac.js';
+import { settingsRouter } from './routes/settings.js';
 
 export function createApp() {
   const app = express();
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('/api/management', requireModule('management'), managementRouter);
   app.use('/api/operation', requireModule('operation'), operationRouter);
   app.use('/api/idle', requireModule('idle'), idleRouter);
+  app.use('/api/settings', requireModule('settings'), settingsRouter);
 
   app.get('/api', (_req, res) => {
     res.json({
